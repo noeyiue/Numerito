@@ -1,10 +1,19 @@
 # Numerito
 ESP32 Arduino Project in 01204322 Embedded System. Kesetsart U.
 
+* NODE MCU ESP32
+* LCD
+* LED RGB 
+* OLED
+* 7 SEGMENT 4 DIGITS
+* BUTTON
+
+
+
 <ins>USED LIBRARY</ins>
-1. LiquidCrystal_I2C
-2. SevSeg 
-3. Adafruit_BusIO 
-4. Adafruit_GFX_Library 
-5. Adafruit_SSD1306
-6. MFRC522 
+* LiquidCrystal_I2C
+* SevSeg 
+* Adafruit_BusIO 
+* Adafruit_GFX_Library 
+* Adafruit_SSD1306
+* MFRC522 
