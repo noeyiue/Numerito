@@ -287,19 +287,19 @@ void readRFID()
 
 void send_to_main() {
   if (p1_phase == 0) {
-    data_out.p1_is_active = true;
-    data_out.p1_number = 0;
-    data_out.p1_is_challenge = 0;
+    data_out.p3_is_active = true;
+    data_out.p3_number = 0;
+    data_out.p3_is_challenge = 0;
   }
   if (p1_phase == 1) {
-    data_out.p1_is_active = false;
-    data_out.p1_number = scan_number;
-    data_out.p1_is_challenge = 0;
+    data_out.p3_is_active = false;
+    data_out.p3_number = scan_number;
+    data_out.p3_is_challenge = 0;
   }
   if (p1_phase == 4) {
-    data_out.p1_is_active = false;
-    data_out.p1_number = 0;
-    data_out.p1_is_challenge = 1;
+    data_out.p3_is_active = false;
+    data_out.p3_number = 0;
+    data_out.p3_is_challenge = 1;
   }
   esp_err_t result_main = esp_now_send(Main_Address, (uint8_t *) &data_out, sizeof(data_out));
   if (result_main == ESP_OK) {
