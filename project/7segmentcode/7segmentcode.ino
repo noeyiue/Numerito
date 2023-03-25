@@ -124,6 +124,11 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
     // strcpy(random_num_message.is_random, "FROM MAIN BOARD");
     random_num_message.is_random = 1;
+    if (color == 1) {
+      displayNum = (ran_ones * 1000) + (ran_tens * 100) + (ran_hun * 10) + (ran_thou);
+      displayNum = displayNum / pow(10,(4-digit));
+    }
+    Serial.println(displayNum);
     random_num_message.random_number = displayNum; 
     random_num_message.random_color = color;
       esp_err_t result = esp_now_send(Main_Address, (uint8_t *) &random_num_message, sizeof(random_num_message));
