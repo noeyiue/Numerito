@@ -10,6 +10,7 @@ uint8_t Main_Address[] = {0xE8, 0xDB, 0x84, 0x00, 0xFC, 0xD4};
 
 typedef struct main_message_in {
   bool do_random;
+  int reset;
 } main_message_in;
 
 
@@ -82,6 +83,14 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.print("From main : ");
   Serial.println(is_ready_to_random.do_random);
   Serial.println();
+
+  if (is_ready_to_random.reset == 1) {
+    sevseg.setNumber(0);
+    analogWrite(PIN_RED,0);
+    analogWrite(PIN_GREEN,0);
+    analogWrite(PIN_BLUE,0);
+  }
+
   if (is_ready_to_random.do_random) {
 
     int digit = random(2,5);
