@@ -55,6 +55,7 @@ uint8_t playerThree_Address[] = {0x24, 0x0A, 0xC4, 0x9A, 0xFC, 0x98};
 // Must match the sender structure
 typedef struct seven_segment_message_out {
     bool do_random;
+    int reset;
 } seven_segment_message_out;
 
 
@@ -194,24 +195,32 @@ void lcd_NumberMatch() {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Challanger wrong :(");
+
     delay(3000);
+
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("-1 challanger");
+    lcd.print("-1 challang. P");
+    lcd.print(fastest_challenge_player);
     lcd.setCursor(0, 1);
-    lcd.print("+1 to right.");
+    lcd.print("+1 to right. P");
+    lcd.print(fastest_player);
 }
 
 void lcd_NumberWrong() {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Challanger right !");
+
     delay(3000);
+
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("+1 challanger score");
+    lcd.print("+1 challang. P");
+    lcd.print(fastest_challenge_player);
     lcd.setCursor(0, 1);
-    lcd.print("-1 to lie.");
+    lcd.print("-1 to lie. P");
+    lcd.print(fastest_player);
 }
 
 void lcd_TimeoutChallenge() {
@@ -220,12 +229,19 @@ void lcd_TimeoutChallenge() {
     lcd.print("Challenge");
     lcd.setCursor(0, 1);
     lcd.print("Timeout..");
+
+    delay(3000);
+
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("+1 to P");
+    lcd.print(fastest_player);
 }
 
 void lcd_EndRound() {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("End Round/Score ");
+    lcd.print("EndRound / Score ");
     lcd.print(mainround);
     lcd.setCursor(0, 1);
     lcd.print("P1:");
@@ -244,6 +260,14 @@ void lcd_EndGame() {
     lcd.print("Winner is P");
     lcd.print(winner);
     lcd.print(" :)");
+}
+
+void lcd_ChallengeTime() {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("It's Challenge");
+    lcd.setCursor(0, 1);
+    lcd.print("Time !");
 }
 
 // ===========================================================================================
@@ -281,6 +305,18 @@ void set_led(int player, int red, int green, int blue) {
 
 void SendDoRandom() {
     segmentData_out.do_random = true;
+    segmentData_out.reset = 0;
+    esp_err_t result_segment = esp_now_send(sevenSegment_Address, (uint8_t *) &segmentData_out, sizeof(segmentData_out));
+    if (result_segment == ESP_OK) {
+        Serial.println("Sent with success");
+    } else {
+        Serial.println("Error sending the data");
+    }
+}
+
+void ResetSevenSegment() {
+    segmentData_out.do_random = false;
+    segmentData_out.reset = 1;
     esp_err_t result_segment = esp_now_send(sevenSegment_Address, (uint8_t *) &segmentData_out, sizeof(segmentData_out));
     if (result_segment == ESP_OK) {
         Serial.println("Sent with success");
@@ -383,6 +419,8 @@ void setup() {
     player2_Data_out.phase = RESET;
     player3_Data_out.phase = RESET;
 
+    ResetSevenSegment();
+
     SendUpdateDataToPlayer();
 }
 
@@ -462,6 +500,9 @@ void loop() {
             fastest_player = 1;
             selecter_player_number = dataIn.p1_number;
 
+            set_led(1, 255, 0, 0);
+            lcd_ChallengeTime();
+            delay(3000);
             mainphase = CHALLANGE;
             lcd_ChallengePhase();
             t1 = millis();
@@ -470,12 +511,14 @@ void loop() {
             player2_Data_out.phase = CHALLANGE;
             player3_Data_out.phase = CHALLANGE;
             SendUpdateDataToPlayer();          
-            set_led(1, 255, 0, 0);
            
         } else if (dataIn.p2_number != 0) {
             fastest_player = 2;
             selecter_player_number = dataIn.p2_number;
 
+            set_led(2, 255, 0, 0);
+            lcd_ChallengeTime();
+            delay(3000);
             mainphase = CHALLANGE;
             lcd_ChallengePhase();
             t1 = millis();
@@ -484,12 +527,14 @@ void loop() {
             player2_Data_out.phase = FASTEST;
             player3_Data_out.phase = CHALLANGE;
             SendUpdateDataToPlayer();
-            set_led(2, 255, 0, 0);
 
         } else if (dataIn.p3_number != 0) {
             fastest_player = 3;
             selecter_player_number = dataIn.p3_number;
 
+            set_led(3, 255, 0, 0);
+            lcd_ChallengeTime();
+            delay(3000);
             mainphase = CHALLANGE;
             lcd_ChallengePhase();
             t1 = millis();
@@ -498,13 +543,16 @@ void loop() {
             player2_Data_out.phase = CHALLANGE;
             player3_Data_out.phase = FASTEST;
             SendUpdateDataToPlayer();
-            set_led(3, 255, 0, 0);
             // set_timer();
         }
     }
 
     
     if ( mainphase == CHALLANGE ) {
+        ResetSevenSegment();
+        // lcd_ChallengeTime();
+        // delay(4000);
+
         t2 = millis();
         t = t2 - t1;
 
@@ -565,7 +613,7 @@ void loop() {
             player_score[fastest_player] += 1;
 
             
-            delay(5000);
+            delay(3000);
             
             mainphase = END_ROUND;
         }
@@ -643,8 +691,10 @@ void loop() {
     }
 
     if ( mainphase == END ){
+        ResetSevenSegment();
+
         lcd_EndGame();
-        delay(10000);
+        delay(8000);
         ESP.restart();
     }
 
