@@ -20,9 +20,24 @@ MFRC522::MIFARE_Key key;
 
 uint8_t Main_Address[] = {0xE8, 0xDB, 0x84, 0x00, 0xFC, 0xD4};
 
+
+// Phase
+const int SETUP = 0;
+const int PLAYING = 1;
+const int SENDING = 2;
+const int FASTEST = 3;
+const int CHALLENGE = 4;
+const int FASTEST_CHALLENGE = 5;
+const int WAIT_CHALLENGE = 6;
+const int END_ROUND = 7;
+const int END = 8;
+
+const int RESET = -1;
+
+
 typedef struct player_message_in {
   int round;
-  int phase; // play, challange, wait, fastest
+  int phase; // play, CHALLENGE, wait, fastest
   int score;
 } player_message_in;
 
@@ -52,7 +67,7 @@ typedef struct message_out {
 player_message_in playerData_in;
 message_out data_out;
 
-int p1_phase = 0; //0 : setup, 1 : playing, 2 : sending, 3 : fastest, 4 : challenge, 5 : fastest challenge, 6 : endround, 7 : end
+int p_phase = SETUP;
 
 esp_now_peer_info_t peerInfo;
 
@@ -69,7 +84,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.print("Score: ");
   Serial.println(playerData_in.score);
 
-  p1_phase = playerData_in.phase;
+  p_phase = playerData_in.phase;
   
   display.display();
   display.clearDisplay();
@@ -80,7 +95,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   display.print(playerData_in.score);
   display.display();
 
-  if (p1_phase == 3)
+  if (p_phase == FASTEST)
   {
     display.display();
     display.setCursor(0,20); 
@@ -88,9 +103,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     display.setTextSize(1);
     display.print("Fastest");
     display.display();
-  }
-  else if (p1_phase == 4)
-  {
+
+  } else if (p_phase == CHALLENGE) {
     display.display();
     display.setCursor(0,20); 
     display.setTextColor(WHITE);
@@ -98,6 +112,27 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     display.print("Pressed to challenge");
 
     display.display();
+
+  } else if (p_phase == FASTEST_CHALLENGE) {
+    display.display();
+    display.setCursor(0,20); 
+    display.setTextColor(WHITE);
+    display.setTextSize(1);
+    display.print("You challenge!");
+
+    display.display();
+
+  } else if (p_phase == WAIT_CHALLENGE) {
+    display.display();
+    display.setCursor(0,20); 
+    display.setTextColor(WHITE);
+    display.setTextSize(1);
+    display.print("Wait for challenger..");
+
+    display.display();
+
+  } else if (p_phase == RESET) {
+    ESP.restart();
   }
   
 }
@@ -167,9 +202,10 @@ void setup() {
   }
 }
 
-void loop() {
 
-    if (p1_phase == 0) {
+
+void loop() {
+    if (p_phase == SETUP) {
       if (readButton() == 1) {
         send_to_main();
         display.clearDisplay();
@@ -182,14 +218,15 @@ void loop() {
       }
     }
   
-  if (p1_phase == 1) {
+
+  if (p_phase == PLAYING) {
     if (rfid.PICC_IsNewCardPresent())
         readRFID();
     if (readButton() == 1) {
       if (scan_number != 0) {
         send_to_main();
         scan_number = 0;
-        p1_phase++;
+        p_phase++;
         display.display();
         display.fillRect(0, 17, 26, 14, BLACK);
         display.setTextColor(WHITE);
@@ -200,15 +237,24 @@ void loop() {
       }
     }
   }
-  if (p1_phase == 4) {
+
+
+  if (p_phase == CHALLENGE) {
     if (readButton() == 1) {
       send_to_main();
     }
+  }
+
+
+  if (p_phase == FASTEST_CHALLENGE) {
+    
   }
   
 
   delay(100);
 }
+
+
 
 bool readButton() {
   int currentState = digitalRead(BUTTON_PIN);
@@ -220,6 +266,8 @@ bool readButton() {
   lastState = currentState;
   return 0;
 }
+
+
 
 void readRFID()
 {
@@ -242,7 +290,7 @@ void readRFID()
         uid.concat(String(rfid.uid.uidByte[i], HEX));
       }
       uid.toUpperCase();
-      // Serial.print(uid);
+      Serial.print(uid);
       int scan_num = 0;
       if (uid == " 33 7B A6 AC")
         scan_num = 1;
@@ -285,23 +333,30 @@ void readRFID()
   
 }
 
+
+
 void send_to_main() {
-  if (p1_phase == 0) {
-    data_out.p3_is_active = true;
-    data_out.p3_number = 0;
-    data_out.p3_is_challenge = 0;
+
+  if (p_phase == SETUP) {
+    data_out.p2_is_active = true;
+    data_out.p2_number = 0;
+    data_out.p2_is_challenge = 0;
   }
-  if (p1_phase == 1) {
-    data_out.p3_is_active = false;
-    data_out.p3_number = scan_number;
-    data_out.p3_is_challenge = 0;
+
+  if (p_phase == PLAYING) {
+    data_out.p2_is_active = false;
+    data_out.p2_number = scan_number;
+    data_out.p2_is_challenge = 0;
   }
-  if (p1_phase == 4) {
-    data_out.p3_is_active = false;
-    data_out.p3_number = 0;
-    data_out.p3_is_challenge = 1;
+
+  if (p_phase == CHALLENGE) {
+    data_out.p2_is_active = false;
+    data_out.p2_number = 0;
+    data_out.p2_is_challenge = 1;
   }
+
   esp_err_t result_main = esp_now_send(Main_Address, (uint8_t *) &data_out, sizeof(data_out));
+
   if (result_main == ESP_OK) {
       Serial.println("Sent to Main with success");
   }
