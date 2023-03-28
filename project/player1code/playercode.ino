@@ -1,4 +1,4 @@
-//This code is for player 1.
+//This code is for player 1.		
 //Edit send_to_main() for another player.
 
 #include <MFRC522.h>
@@ -16,7 +16,7 @@ Adafruit_SSD1306 display(OLED_RESET);
 
 #define BUTTON_PIN 36
  
-MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
+MFRC522 rfid(SS_PIN, RST_PIN); 
 
 MFRC522::MIFARE_Key key; 
 
@@ -167,7 +167,7 @@ void setup() {
   
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
 
-  // Clear the buffer.
+  // Clear the buffer and start message.
   display.clearDisplay();
   display.display();
   display.setTextColor(WHITE);
@@ -208,8 +208,9 @@ void setup() {
 
 
 void loop() {
+
     if (p_phase == SETUP) {
-      if (readButton() == 1) {
+      if (readButton()) {
         send_to_main();
         display.clearDisplay();
         display.display();
@@ -218,14 +219,14 @@ void loop() {
         display.setCursor(0,0); 
         display.print("Wait for other...");
         display.display();
+
       }
     }
-  
 
   if (p_phase == PLAYING) {
     if (rfid.PICC_IsNewCardPresent())
         readRFID();
-    if (readButton() == 1) {
+    if (readButton()) {
       if (scan_number != 0) {
         send_to_main();
         scan_number = 0;
@@ -238,36 +239,50 @@ void loop() {
         display.print("Sending...");
         display.display();
       }
+
     }
   }
 
 
   if (p_phase == CHALLENGE) {
-    if (readButton() == 1) {
+    if (readButton()) {
       send_to_main();
+
     }
   }
 
 
   if (p_phase == FASTEST_CHALLENGE) {
-    
+    // pass
   }
-  
+
 
   delay(100);
 }
 
 
+int debounceDelay = 25;
 
 bool readButton() {
-  int currentState = digitalRead(BUTTON_PIN);
-  if (lastState == 0 && currentState == 1) {
-    Serial.println("Button pressed");
-    lastState = currentState;
-    return 1;
+  bool state;
+  bool previousState;
+
+  previousState = digitalRead(BUTTON_PIN);
+
+  for (int c = 0; c < debounceDelay; c++) {
+    // Serial.printf("c: %d\n", c);
+    delay(1);
+    state = digitalRead(BUTTON_PIN);
+
+    if (state != previousState) {
+      c = 0;
+      previousState = state;
+    }
   }
-  lastState = currentState;
-  return 0;
+
+  Serial.printf("state: %d\n", state);
+
+  return state;
 }
 
 
@@ -295,20 +310,56 @@ void readRFID()
       uid.toUpperCase();
       Serial.print(uid);
       int scan_num = 0;
-      if (uid == " 33 7B A6 AC")
+
+      if (uid == " 33 7B A6 AC" 
+       || uid == " 04 BC 4A 68 73 00 00" 
+       || uid == " 04 83 3F 73 73 00 00") 
+      {
         scan_num = 1;
-      else if (uid == " 04 07 4E 68 73 00 00")
+      }
+
+      else if (uid == " 04 07 4E 68 73 00 00" 
+            || uid == " 04 0F 9F 74 73 00 00"
+            || uid == " 04 57 24 74 73 00 00") 
+      {
         scan_num = 2;
-      else if (uid == " 04 46 26 75 73 00 00")
+      }
+
+      else if (uid == " 04 46 26 75 73 00 00" 
+            || uid == " 04 70 AD 74 73 00 00"
+            || uid == " 04 43 2E 74 73 00 00") 
+      {
         scan_num = 3;
-      else if (uid == " 04 BB 00 68 73 00 00")
+      }
+
+      else if (uid == " 04 BB 00 68 73 00 00" 
+            || uid == " 04 F6 6D 73 73 00 00"
+            || uid == " 04 48 07 74 73 00 00") 
+      {
         scan_num = 4;
-      else if (uid == " 04 05 79 73 73 00 00")
+      }
+
+      else if (uid == " 04 05 79 73 73 00 00" 
+            || uid == " 04 A2 F3 73 73 00 00"
+            || uid == " 04 B1 E7 68 73 00 00") 
+      {
         scan_num = 5;
-      else if (uid == " 04 43 30 73 73 00 00")
+      }
+
+      else if (uid == " 04 43 30 73 73 00 00" 
+            || uid == " 04 AA B6 71 73 00 00"
+            || uid == " 04 E0 2F 74 73 00 00") 
+      {
         scan_num = 6;
-      else if (uid == " 04 0D 1A 68 73 00 00")
+      }
+
+      else if (uid == " 04 0D 1A 68 73 00 00" 
+            || uid == " 04 0C 68 72 73 00 00"
+            || uid == " 04 8F 6B 72 73 00 00") 
+      {
         scan_num = 9;
+      }
+
       Serial.print(" count : ");
       Serial.print(count);
       Serial.print(" number : ");
@@ -339,8 +390,8 @@ void readRFID()
 
 
 void send_to_main() {
-
-  //Player 1
+ 
+ //------------- Player 1 -------------//
   if (p_phase == SETUP) {
     data_out.p1_is_active = true;
     data_out.p1_number = 0;
@@ -358,25 +409,47 @@ void send_to_main() {
     data_out.p1_number = 0;
     data_out.p1_is_challenge = 1;
   }
+  //------------- Player 1 -------------//
  
- //Player 2
-  if (p_phase == SETUP) {
-    data_out.p2_is_active = true;
-    data_out.p2_number = 0;
-    data_out.p2_is_challenge = 0;
-  }
+ //------------- Player 2 -------------//
+//   if (p_phase == SETUP) {
+//     data_out.p2_is_active = true;
+//     data_out.p2_number = 0;
+//     data_out.p2_is_challenge = 0;
+//   }
 
-  if (p_phase == PLAYING) {
-    data_out.p2_is_active = false;
-    data_out.p2_number = scan_number;
-    data_out.p2_is_challenge = 0;
-  }
+//   if (p_phase == PLAYING) {
+//     data_out.p2_is_active = false;
+//     data_out.p2_number = scan_number;
+//     data_out.p2_is_challenge = 0;
+//   }
 
-  if (p_phase == CHALLENGE) {
-    data_out.p2_is_active = false;
-    data_out.p2_number = 0;
-    data_out.p2_is_challenge = 1;
-  }
+//   if (p_phase == CHALLENGE) {
+//     data_out.p2_is_active = false;
+//     data_out.p2_number = 0;
+//     data_out.p2_is_challenge = 1;
+//   }
+  //------------- Player 2 -------------//
+ 
+  //------------- Player 3 -------------//
+//   if (p_phase == SETUP) {
+//     data_out.p3_is_active = true;
+//     data_out.p3_number = 0;
+//     data_out.p3_is_challenge = 0;
+//   }
+
+//   if (p_phase == PLAYING) {
+//     data_out.p3_is_active = false;
+//     data_out.p3_number = scan_number;
+//     data_out.p3_is_challenge = 0;
+//   }
+
+//   if (p_phase == CHALLENGE) {
+//     data_out.p3_is_active = false;
+//     data_out.p3_number = 0;
+//     data_out.p3_is_challenge = 1;
+//   }
+  //------------- Player 3 -------------//
 
   esp_err_t result_main = esp_now_send(Main_Address, (uint8_t *) &data_out, sizeof(data_out));
 
