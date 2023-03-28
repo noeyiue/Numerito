@@ -1,3 +1,6 @@
+//This code is for player 1.
+//Edit send_to_main() for another player.
+
 #include <MFRC522.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -337,6 +340,26 @@ void readRFID()
 
 void send_to_main() {
 
+  //Player 1
+  if (p_phase == SETUP) {
+    data_out.p1_is_active = true;
+    data_out.p1_number = 0;
+    data_out.p1_is_challenge = 0;
+  }
+
+  if (p_phase == PLAYING) {
+    data_out.p1_is_active = false;
+    data_out.p1_number = scan_number;
+    data_out.p1_is_challenge = 0;
+  }
+
+  if (p_phase == CHALLENGE) {
+    data_out.p1_is_active = false;
+    data_out.p1_number = 0;
+    data_out.p1_is_challenge = 1;
+  }
+ 
+ //Player 2
   if (p_phase == SETUP) {
     data_out.p2_is_active = true;
     data_out.p2_number = 0;
