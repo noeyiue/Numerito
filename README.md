@@ -1,5 +1,7 @@
 # Numerito
 ESP32 Arduino Project in 01204322 Embedded System. Kesetsart U.
+จัดทำโดย กัณธิฎา ภารัตนวงศ์ , นำภูมิ เลิศพิทักษ์ธรรม , ปิยกร ทัตตินาพานิช , ศิวกร กมลดิลก , ชุติพันธุ์ บาลมงคล
+ภาควิชาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยเกษตรศาสตร์
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
@@ -84,5 +86,5 @@ ESP32 Arduino Project in 01204322 Embedded System. Kesetsart U.
 			- RFID Card [21] : สำหรับการเล่นเกม 
             <div style="text-align:center">
                 <img src="https://user-images.githubusercontent.com/86821757/228429403-9e5e85a2-30a7-4dec-b8e2-e1f2b14ffa92.jpg" width=50% height=50% title="Player Schematic">
-            </div>
             <p style="text-align:center">Player Schematic</p> 
+	</div>
