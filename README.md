@@ -1,5 +1,5 @@
 # Numerito
-ESP32 Arduino Project in 01204322 Embedded System. Kesetsart U.
+ESP32 Arduino Project in 01204322 Embedded System. Kesetsart U. <br />
 จัดทำโดย กัณธิฎา ภารัตนวงศ์ , นำภูมิ เลิศพิทักษ์ธรรม , ปิยกร ทัตตินาพานิช , ศิวกร กมลดิลก , ชุติพันธุ์ บาลมงคล
 ภาควิชาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยเกษตรศาสตร์
 
